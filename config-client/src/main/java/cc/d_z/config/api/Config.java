@@ -10,12 +10,12 @@ import java.util.concurrent.Callable;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import cc.d_z.config.exception.ConfigException;
 import cc.d_z.config.utils.ClientUtils;
 import cc.d_z.config.utils.DZMap;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.zkclient.IZkDataListener;
 import com.github.zkclient.ZkClient;
 import com.github.zkclient.ZkClientUtils;
@@ -62,22 +62,19 @@ public class Config implements Closeable {
 	private void subscribe() {
 		List<String> paths = ClientUtils.getEachOnePath(ROOT_PATH, path);
 		for (String _path : paths) {
-			this.zkClient.subscribeDataChanges(_path, new ConfigListener());
+			this.zkClient.subscribeDataChanges(_path, new IZkDataListener() {
+				@Override
+				public void handleDataChange(String dataPath, byte[] data) throws Exception {
+					load();
+				}
+
+				@Override
+				public void handleDataDeleted(String dataPath) throws Exception {
+					load();
+				}
+
+			});
 		}
-	}
-
-	private final class ConfigListener implements IZkDataListener {
-
-		@Override
-		public void handleDataChange(String dataPath, byte[] data) throws Exception {
-			load();
-		}
-
-		@Override
-		public void handleDataDeleted(String dataPath) throws Exception {
-			load();
-		}
-
 	}
 
 	/**
