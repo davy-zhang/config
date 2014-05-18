@@ -1,0 +1,16 @@
+<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+<script type="text/javascript" src="@routes.Assets.at("javascripts/jquery.form.js")" ></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/config.js")" ></script>
+<div id="config" style="display: none;">
+	<div id="configDiv">
+		<form action="@routes.ConfigController.saveConfig" id="configForm" method="post" >
+			<ul>
+				<li><label>配置路径:</label> <input id="configPath" name="path" style="width: 300px" readonly="readonly"></li>
+				<li><label>版本:</label> <input id="version" name="version" readonly="readonly"></li>
+			</ul>
+			<div id="params"></div>
+			<input type="button" id="addParams" onclick="javascript:addParameter()" value="增加"> 
+			<input type="button" id="saveConfigButton" onclick="javascript:saveConfig()" value="保存">
+		</form>
+	</div>
+</div>

@@ -1,0 +1,18 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+#page
+GET     /                           controllers.ConfigController.configManager
+
+#method
+GET		/getTreeNodes				controllers.ConfigController.getTreeNodes
+GET		/getConfig					controllers.ConfigController.getConfig
+POST	/saveConfig					controllers.ConfigController.saveConfig
+GET		/createNode					controllers.ConfigController.createNode
+GET		/updateNode					controllers.ConfigController.updateNode
+GET		/deleteNode					controllers.ConfigController.deleteNode					
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
