@@ -1,18 +1,13 @@
 package cc.d_z.config.api;
 
-import static org.junit.Assert.*;
-
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
 import cc.d_z.config.api.constant.TestConstant;
-import cc.d_z.config.factory.ConfigFactory;
 
 /**
  * @author davy <br>
@@ -28,8 +23,7 @@ public class ConfigTest implements TestConstant {
 
 	@Before
 	public void init() {
-		ConfigFactory.init(ZOOKEEPER_SERVER);
-		config = ConfigFactory.build(PATH);
+		config = Config.build(ZOOKEEPER_SERVER, PATH);
 
 	}
 

@@ -5,11 +5,11 @@ import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.zookeeper.ZKUtil;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import cc.d_z.config.exception.ConfigException;
@@ -20,6 +20,8 @@ import com.github.zkclient.IZkDataListener;
 import com.github.zkclient.ZkClient;
 import com.github.zkclient.ZkClientUtils;
 import com.google.common.base.Optional;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 /**
  * @author davy <br>
@@ -29,18 +31,21 @@ import com.google.common.base.Optional;
  *         <a href="http://d-z.cc">d-z.cc</a><br>
  */
 public class Config implements Closeable {
-	public static final String ROOT_PATH = "/configuration";
-	private static final Charset CHARSET = Charset.forName("UTF-8");
+	protected final String ROOT_PATH;
+	protected final Charset CHARSET;
 	protected final DZMap<String, Object> parameters = new DZMap<String, Object>();
+	private static final Cache<String, Config> configCache = CacheBuilder.newBuilder().build();
 
-	private ZkClient zkClient;
-	private String path;
-	private String zookeeperServer;
-	private static final boolean showLog = BooleanUtils.toBoolean(System.getProperty("config.log.show", "true"));
+	protected final ZkClient zkClient;
+	protected final String path;
+	protected final String zookeeperServer;
+	protected final boolean showLog = BooleanUtils.toBoolean(System.getProperty("config.log.show", "true"));
 
-	public Config(String path, String zookeeperServer) throws Exception {
+	private Config(String path, String zookeeperServer, String rootPath, Charset charset) throws Exception {
 		this.path = path;
 		this.zookeeperServer = zookeeperServer;
+		this.ROOT_PATH = rootPath;
+		this.CHARSET = charset;
 		this.zkClient = new ZkClient(zookeeperServer);
 		checkPath();
 		subscribe();
@@ -49,9 +54,9 @@ public class Config implements Closeable {
 	}
 
 	private void regist() {
-		String ipOrHostName=System.getProperty("ip", ZkClientUtils.getLocalhostName());
-		String port=System.getProperty("port", "0");
-		zkClient.createEphemeral(path+"/~"+ipOrHostName+":"+port);
+		String ipOrHostName = ZkClientUtils.getLocalhostName();
+		String port = System.getProperty("port", "0");
+		zkClient.createEphemeral(path + "/~" + ipOrHostName + ":" + port);
 	}
 
 	private void subscribe() {
@@ -97,6 +102,7 @@ public class Config implements Closeable {
 		zkClient.close();
 	}
 
+	@SuppressWarnings("unchecked")
 	public synchronized void load() {
 		List<String> paths = ClientUtils.getEachOnePath(ROOT_PATH, path);
 		Collections.reverse(paths);
@@ -107,6 +113,7 @@ public class Config implements Closeable {
 				Optional<String> parameter = Optional.of(new String(data, CHARSET));
 				try {
 					Map<String, Object> parameterMap = mapper.readValue(parameter.get(), Map.class);
+					this.parameters.clear();
 					this.parameters.putAll(parameterMap);
 				} catch (Exception e) {
 					throw new ConfigException(zookeeperServer, _path, parameter, "获取配置时出错", e);
@@ -133,6 +140,27 @@ public class Config implements Closeable {
 	@Override
 	public String toString() {
 		return "Config [" + (parameters != null ? "parameters=" + parameters + ", " : "") + (path != null ? "path=" + path + ", " : "") + (zookeeperServer != null ? "zookeeperServer=" + zookeeperServer : "") + "]";
+	}
+
+	public static Config build(final String zookeeperServer, final String path) {
+		return build(zookeeperServer, path, "/configuration", Charset.forName("UTF-8"));
+	}
+
+	public static Config build(final String zookeeperServer, final String path, final String rootPath, final Charset charset) {
+		Config config = null;
+		try {
+			config = configCache.get(path, new Callable<Config>() {
+				@Override
+				public Config call() throws Exception {
+					return new Config(path, zookeeperServer, rootPath, charset);
+				}
+			});
+		} catch (Exception e) {
+			Optional<String> parameter = Optional.fromNullable(null);
+			throw new ConfigException(zookeeperServer, path, parameter, "创建Config对象失败", e);
+		}
+		return config;
+
 	}
 
 }

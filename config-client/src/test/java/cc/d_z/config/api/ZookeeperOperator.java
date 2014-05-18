@@ -1,13 +1,6 @@
 package cc.d_z.config.api;
 
-import static org.junit.Assert.*;
-
-import java.nio.charset.Charset;
-
-import org.apache.zookeeper.ZooKeeper.States;
 import org.apache.zookeeper.data.Stat;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 
 import cc.d_z.config.api.constant.TestConstant;
