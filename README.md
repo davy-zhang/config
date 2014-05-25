@@ -8,4 +8,6 @@ config
 
 配置管理中心可以通过可视化界面配置zookeeper中的参数.通过子节点继承父节点的方式来进行配置的抽象.
 
+config-client的API文档http://d-z.cc/oos/config-client
+
 
