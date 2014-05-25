@@ -1,4 +1,4 @@
-package cc.d_z.config.api;
+package cc.d_z.config.api.test;
 
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -7,9 +7,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Before;
 import org.junit.Test;
 
-import cc.d_z.config.api.constant.TestConstant;
+import cc.d_z.config.api.Config;
+import cc.d_z.config.api.test.constant.TestConstant;
 
 /**
+ * The Class ConfigTest.
+ * 
  * @author davy <br>
  *         2014年4月8日 下午11:20:10 <br>
  *         <B>The default encoding is UTF-8 </B><br>
@@ -18,15 +21,24 @@ import cc.d_z.config.api.constant.TestConstant;
  */
 public class ConfigTest implements TestConstant {
 
+	/** The config. */
 	private Config config;
+
+	/** The Constant stop. */
 	private static final AtomicBoolean stop = new AtomicBoolean();
 
+	/**
+	 * Inits the.
+	 */
 	@Before
 	public void init() {
 		config = Config.build(ZOOKEEPER_SERVER, PATH);
 
 	}
 
+	/**
+	 * Stop.
+	 */
 	@Test
 	public void stop() {
 		new Thread(new Runnable() {
@@ -39,19 +51,29 @@ public class ConfigTest implements TestConstant {
 		}).start();
 	}
 
+	/**
+	 * Gets the parameter.
+	 * 
+	 */
 	@Test
 	public void getParameter() {
-		for (;!stop.get();) {
+		for (; !stop.get();) {
 			System.out.println(config.getParameters().get("service_port"));
 			sleep();
 		}
 		close();
 	}
 
+	/**
+	 * Close.
+	 */
 	public void close() {
 		config.close();
 	}
 
+	/**
+	 * Sleep.
+	 */
 	private void sleep() {
 		try {
 			TimeUnit.SECONDS.sleep(1L);
